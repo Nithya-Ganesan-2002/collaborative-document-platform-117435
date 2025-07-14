@@ -1,6 +1,7 @@
 const express = require('express');
 const healthController = require('../controllers/health');
 const authRoutes = require('./auth');
+const documentRoutes = require('./document');
 
 const router = express.Router();
 // Health endpoint
@@ -33,7 +34,14 @@ const router = express.Router();
  */
 router.get('/', healthController.check.bind(healthController));
 
-// Mount authentication routes under /auth
+/**
+ * Mount authentication routes under /auth
+ */
 router.use('/auth', authRoutes);
+
+/**
+ * Mount document routes under /documents
+ */
+router.use('/documents', documentRoutes);
 
 module.exports = router;
