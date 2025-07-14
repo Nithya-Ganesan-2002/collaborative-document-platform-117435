@@ -1,5 +1,6 @@
 const express = require('express');
 const documentController = require('../controllers/document');
+const { jwtAuth } = require('../middleware'); // import middleware
 
 const router = express.Router();
 
@@ -9,6 +10,9 @@ const router = express.Router();
  *   name: Documents
  *   description: Document CRUD and collaboration routes
  */
+
+// Secure all document endpoints: require valid JWT
+router.use(jwtAuth);
 
 /**
  * @swagger

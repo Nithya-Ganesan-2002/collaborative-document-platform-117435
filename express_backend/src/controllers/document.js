@@ -1,20 +1,9 @@
 const documentService = require('../services/documentService');
-const supabaseService = require('../services/supabaseService');
 
 /**
- * Extracts user ID from Supabase JWT access token. Returns user.id or throws error.
+ * Document controller - all endpoints require authentication (set by router)
+ * Uses JWT middleware, attaches user info to `req.user`.
  */
-async function getUserIdFromRequest(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) throw new Error('Authorization token missing');
-  const token = authHeader.split(' ')[1];
-  if (!token) throw new Error('Authorization token missing');
-  // Get user from Supabase auth
-  const { data, error } = await supabaseService.getClient().auth.getUser(token);
-  if (error || !data?.user) throw new Error('Invalid/expired token');
-  return data.user.id;
-}
-
 class DocumentController {
   // PUBLIC_INTERFACE
   /**
@@ -23,12 +12,13 @@ class DocumentController {
    */
   async create(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const { title, content } = req.body;
       if (!title) return res.status(400).json({ message: 'Title required' });
       const doc = await documentService.createDocument(userId, title, content);
       return res.status(201).json(doc);
     } catch (err) {
+      // Still catch service errors
       return res.status(400).json({ message: err.message });
     }
   }
@@ -39,7 +29,7 @@ class DocumentController {
    */
   async get(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const { id } = req.params;
       const doc = await documentService.getDocument(userId, id);
       return res.status(200).json(doc);
@@ -55,7 +45,7 @@ class DocumentController {
    */
   async update(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const { id } = req.params;
       const updates = {};
       if ('title' in req.body) updates.title = req.body.title;
@@ -76,7 +66,7 @@ class DocumentController {
    */
   async delete(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const { id } = req.params;
       await documentService.deleteDocument(userId, id);
       return res.status(200).json({ success: true });
@@ -91,7 +81,7 @@ class DocumentController {
    */
   async list(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const docs = await documentService.listDocuments(userId);
       return res.status(200).json(docs);
     } catch (err) {
@@ -106,7 +96,7 @@ class DocumentController {
    */
   async invite(req, res) {
     try {
-      const inviterId = await getUserIdFromRequest(req);
+      const inviterId = req.user.id;
       const { id } = req.params;
       const { inviteeId } = req.body;
       if (!inviteeId) return res.status(400).json({ message: 'inviteeId required' });
@@ -124,7 +114,7 @@ class DocumentController {
    */
   async removeCollaborator(req, res) {
     try {
-      const ownerId = await getUserIdFromRequest(req);
+      const ownerId = req.user.id;
       const { id } = req.params;
       const { collaboratorId } = req.body;
       if (!collaboratorId) return res.status(400).json({ message: 'collaboratorId required' });
@@ -142,7 +132,7 @@ class DocumentController {
    */
   async syncContent(req, res) {
     try {
-      const userId = await getUserIdFromRequest(req);
+      const userId = req.user.id;
       const { id } = req.params;
       const { content } = req.body;
       if (typeof content !== 'string') return res.status(400).json({ message: 'Content required' });

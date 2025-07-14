@@ -1,4 +1,8 @@
-// This file will export middleware as the application grows
+/**
+ * Middleware index.
+ * Consolidates all middleware exports for convenient usage across the app.
+ */
+const { jwtAuth } = require('./auth');
 module.exports = {
-  // Add your middleware here
+  jwtAuth,
 };
